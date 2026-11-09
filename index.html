@@ -297,20 +297,14 @@
       pointer-events: auto;
     }
 
-    .video-wrapper {
+    /* Clean Native HTML5 Video Element */
+    .native-reel-video {
       width: 100%;
       height: 100%;
-      position: relative;
-      background: #000;
-      overflow: hidden;
-    }
-
-    .embedded-player {
-      width: 100%;
-      height: 100%;
-      border: 0;
+      object-fit: cover;
       display: block;
       background: #000;
+      border-radius: 18px;
     }
 
     .gift-wrap-veil {
@@ -713,7 +707,7 @@
       </div>
     </div>
 
-    <!-- 2: Celebration Reel -->
+    <!-- 2: Celebration Reel (Native HTML5 Video) -->
     <div class="celebration-card">
       <div class="card-header">
         <div class="card-title-group">
@@ -733,17 +727,16 @@
       </div>
 
       <div class="media-viewport" id="videoBox" onclick="revealMystery('video')">
-        <div class="video-wrapper">
-          <iframe 
-            id="driveVideoPlayer"
-            class="embedded-player" 
-            src="about:blank"
-            data-src-real="https://drive.google.com/file/d/1CxlCyZTUMXTOGiIgqBUMI6ZeiFWqxXHl/preview"
-            data-src-ghibli="https://drive.google.com/file/d/1VvqjYaQAQO3CIRd7mPiWXwN8mGtGn6J3/preview"
-            allow="autoplay; encrypted-media; picture-in-picture" 
-            allowfullscreen>
-          </iframe>
-        </div>
+        <video 
+          id="nativeReelPlayer"
+          class="native-reel-video"
+          playsinline 
+          webkit-playsinline
+          controls
+          preload="metadata"
+          poster="https://lh3.googleusercontent.com/d/1nt1ZYW0Rvgg8P4E1EvoeqQHwYaxlyga7=w1200">
+          <source id="videoSource" src="real_reel.mp4" type="video/mp4" />
+        </video>
 
         <div class="gift-wrap-veil" id="videoVeil">
           <div class="ribbon-vertical"></div>
@@ -820,6 +813,8 @@
     const bgMusic = document.getElementById('bgMusic');
     const musicBtn = document.getElementById('musicBtn');
     const musicStatus = document.getElementById('musicStatus');
+    const reelPlayer = document.getElementById('nativeReelPlayer');
+    const videoSource = document.getElementById('videoSource');
 
     function tryAutoPlayMusic() {
       if (!autoPlayAttempted && !isMusicPlaying) {
@@ -873,9 +868,8 @@
           document.getElementById('videoBadge').classList.add('active');
           document.getElementById('videoTabs').style.display = 'flex';
           
-          const iframe = document.getElementById('driveVideoPlayer');
-          if (iframe && iframe.src === 'about:blank') {
-            iframe.src = iframe.getAttribute('data-src-real');
+          if (reelPlayer) {
+            reelPlayer.play().catch(e => console.log('Video play prompted', e));
           }
           triggerConfetti(60);
         }
@@ -910,20 +904,24 @@
       if (e) e.stopPropagation();
       const realTab = document.getElementById('tabVideoReal');
       const ghibliTab = document.getElementById('tabVideoGhibli');
-      const iframe = document.getElementById('driveVideoPlayer');
       const caption = document.getElementById('videoCaption');
+
+      if (!reelPlayer || !videoSource) return;
 
       if (mode === 'real') {
         realTab.classList.add('active');
         ghibliTab.classList.remove('active');
-        iframe.src = iframe.getAttribute('data-src-real');
+        videoSource.src = 'real_reel.mp4';
         caption.innerText = 'Pure Joy & Confetti 💖 (Real)';
       } else {
         ghibliTab.classList.add('active');
         realTab.classList.remove('active');
-        iframe.src = iframe.getAttribute('data-src-ghibli');
+        videoSource.src = 'ghibli_reel.mp4';
         caption.innerText = 'Ghibli Animated Magic 🪄🎂';
       }
+
+      reelPlayer.load();
+      reelPlayer.play().catch(err => console.log(err));
       triggerConfetti(35);
     }
 
